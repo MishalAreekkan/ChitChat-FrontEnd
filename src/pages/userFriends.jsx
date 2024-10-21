@@ -1,12 +1,17 @@
 import React from 'react'
 import { IoMdPersonAdd } from "react-icons/io";
+import { useFollowUser } from '../api/userside';
 function UserFriends() {
     const friends = [
-        { name: "John Bruce", profession: "No Profession", img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIIQb6U4OUfRB0ddrwRCeMM3bdrwpohfm_TyG9n-lBiBzwlnOuncyLUtohth1_oSJMdAw&usqp=CAU" },
+        { name: "John Bruce", profession: "No Profession", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIIQb6U4OUfRB0ddrwRCeMM3bdrwpohfm_TyG9n-lBiBzwlnOuncyLUtohth1_oSJMdAw&usqp=CAU" },
         { name: "Anna Mariya", profession: "Web Developer", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTUiQprIzqdBNqRY4vkz1ophC-T7Zbp-mea1QifrJYaHWgkvXWv1vjLbym_o45O_faBk5g&usqp=CAU" },
         { name: "Mille Brown", profession: "MERN Stack Developer", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-3G2k6ECBmcv0BnUYIR_S55uBOuRen2sL7h7aGyb2LrHyei0IKdtY_AKhxPyod72cVpQ&usqp=CAU" }
     ];
 
+    const { mutate, isLoading } = useFollowUser();
+    const handleFollowClick = (userId) => {
+        mutate(userId);
+    };
     return (
         <div className='w-full h-full p-5 overflow-auto'>
             <div className="w-full shadow-md rounded-lg border-2">
@@ -25,7 +30,13 @@ function UserFriends() {
                             </div>
 
                             <div className="flex space-x-2 ">
-                                <button className="border border-gray-300 bg-black text-white p-1 text-sm rounded-full">Accept</button>
+                                <button
+                                    onClick={() => handleFollowClick(friend.id)}
+                                    disabled={isLoading}
+                                    className="border border-gray-300 p-1 text-sm rounded-full"
+                                >
+                                    {isLoading ? 'Following...' : 'Follow'}
+                                </button>
                                 <button className="border border-gray-300 p-1 text-sm rounded-full">Deny</button>
                             </div>
                         </div>
@@ -52,7 +63,7 @@ function UserFriends() {
                             </div>
 
                             <div className="flex space-x-2 ">
-                            <IoMdPersonAdd />
+                                <IoMdPersonAdd />
                             </div>
                         </div>
                     ))}

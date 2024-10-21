@@ -1,11 +1,59 @@
-import React from 'react'
 import UserNavbar from './userNavbar'
 import { FaCamera } from "react-icons/fa";
 import { useSelector } from 'react-redux';
+import * as React from 'react';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import Modal from '@mui/material/Modal';
+import TextField from '@mui/material/TextField';
+import { useProfileEdit } from '../api/userside';
+
+const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+};
+
 
 function UserProfileEdit() {
     const user = useSelector(state => state.auth.user)
+    console.log(user,'uuuuuuuuuu');
     const baseUrl = "http://127.0.0.1:8000/"
+    const [open, setOpen] = React.useState(false);
+    const { mutate: editProfile, isLoading } = useProfileEdit()
+    const [username, setUsername] = React.useState('');
+    const [email, setEmail] = React.useState('');
+    const [picture, setPicture] = React.useState(null);
+
+    const handleOpen = () => {
+        setOpen(true);
+        setUsername(user.username);
+        setEmail(user.email);
+    };
+    const handleClose = () => setOpen(false);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('email', email);
+        if (picture) {
+            formData.append('picture', picture);
+        }
+        editProfile(formData, {
+            onSuccess: () => {
+                handleClose();
+            },
+        });
+    };
+
     return (<>
         <div>
             <UserNavbar />
@@ -26,10 +74,70 @@ function UserProfileEdit() {
                         </div>
                     </div>
 
+
                     <div className="mt-4 text-center">
                         <h1 className="font-bold text-lg">{user.username}</h1>
                         <div className="mt-2 space-x-2">
-                            <button className="px-4 py-2 text-sm text-gray-700 bg-gray-200 rounded">Edit profile</button>
+                            <Button onClick={handleOpen}>Edit</Button>
+                            <Modal
+                                open={open}
+                                onClose={handleClose}
+                                aria-labelledby="modal-modal-title"
+                                aria-describedby="modal-modal-description"
+                            >
+                                <Box sx={style}>
+                                    <form onSubmit={handleSubmit}>
+                                        <Box
+                                            component="div"
+                                            sx={{ '& > :not(style)': { m: 1, width: '100%' } }}
+                                        >
+                                            <TextField
+                                                id="username"
+                                                label="Username"
+                                                variant="standard"
+                                                value={username}
+                                                onChange={(e) => setUsername(e.target.value)}
+                                                required
+                                                fullWidth
+                                            />
+                                            <TextField
+                                                id="email"
+                                                label="Email"
+                                                variant="standard"
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                required
+                                                fullWidth
+                                            />
+                                            <TextField
+                                                id="picture"
+                                                type="file"
+                                                variant="standard"
+                                                onChange={(e) => setPicture(e.target.files[0])}
+                                                fullWidth
+                                            />
+                                        </Box>
+                                        <Box sx={{ mt: 2 }}>
+                                            <Button
+                                                type="submit"
+                                                variant="contained"
+                                                color="primary"
+                                                disabled={isLoading}
+                                            >
+                                                {isLoading ? 'Updating...' : 'Update Profile'}
+                                            </Button>
+                                            <Button
+                                                onClick={handleClose}
+                                                variant="outlined"
+                                                color="secondary"
+                                                sx={{ ml: 2 }}
+                                            >
+                                                Cancel
+                                            </Button>
+                                        </Box>
+                                    </form>
+                                </Box>
+                            </Modal>
                             <button className="px-4 py-2 text-sm text-gray-700 bg-gray-200 rounded">View archive</button>
                         </div>
                         <div className='flex justify-between mt-2'>
@@ -58,14 +166,6 @@ function UserProfileEdit() {
                         </div>
                     </div>
                 </div>
-                    {/* <div>
-                        <div>
-                        Professional Dashboard
-                        </div>
-                        <button>
-                            32 accounts reached in the 30 days
-                        </button>
-                    </div> */}
                 <div className="flex flex-col items-center mt-6 space-y-4">
 
                     <h2 className="font-bold text-lg">Share Photos</h2>
@@ -73,7 +173,9 @@ function UserProfileEdit() {
                         When you share photos, they will appear on your profile.
                     </p>
                 </div>
+                <div>
 
+                </div>
                 {/* Tabs */}
                 <div className="mt-8 w-full flex justify-around border-t border-gray-300 pt-4">
                     <button className="text-gray-500">POSTS</button>

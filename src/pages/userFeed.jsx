@@ -3,12 +3,12 @@ import { useUserPost } from '../api/userside';
 import { SlLike } from "react-icons/sl";
 import { FaRegCommentDots } from "react-icons/fa";
 import { MdSaveAlt } from "react-icons/md";
+import { useSelector } from 'react-redux';
 
 function UserFeed() {
     const baseurl = "http://127.0.0.1:8000/";
     const { data: posts } = useUserPost();
     console.log(posts, 'Posts data');
-
     return (
         <div className="p-6 rounded-lg w-full h-full mt-4">
             {posts?.length > 0 ? (
@@ -16,7 +16,7 @@ function UserFeed() {
                     const username = post?.users?.[0]?.username || 'Unknown User';
                     const content = post?.content || '';
                     const postImg = post?.post || '';
-                    const userImage = post?.users?.[0]?.picture || 'default_profile_pic_url'; // Update with actual path if available
+                    const userImage = post?.users?.[0]?.picture || 'default_profile_pic_url';
 
                     return (
                         <div key={index} className="mb-6 border-2 shadow-md border-gray rounded-lg p-4">

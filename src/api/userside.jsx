@@ -43,3 +43,46 @@ export const useChat = () => {
         },
     });
 };
+
+const followUser = async (userId) => {
+    const response = await axiosInstance.post(`/follow/${userId}/`);
+    return response.data;
+  };
+  
+ export const useFollowUser = () => {
+    return useMutation({
+      mutationFn: (userId) => followUser(userId),
+      onSuccess: (data) => {
+        console.log('Follow request sent:', data);
+        alert(data.detail);
+      },
+      onError: (error) => {
+        console.error('Error following user:', error);
+        alert(error.response?.data?.detail || 'An error occurred');
+      },
+    });
+  };
+
+const profileEdit = async (userId, formData) => {
+    const token = localStorage.getItem('authToken');
+    const config = {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
+        },
+    };
+    const response = await axios.patch(`http://127.0.0.1:8000/update/${userId}/`, formData, config);
+    return response.data;
+};
+
+export const useProfileEdit = () => {
+    return useMutation({
+        mutationFn: ({ userId, formData }) => profileEdit(userId, formData),
+        onSuccess: (data) => {
+            console.log('Profile updated successfully:', data);
+        },
+        onError: (error) => {
+            console.error('Error updating profile:', error);
+        },
+    });
+};

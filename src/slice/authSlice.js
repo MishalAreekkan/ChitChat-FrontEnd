@@ -16,7 +16,6 @@ export const authSlice = createSlice({
             console.log(state.authToken,'lllllllllllllyylll');
             state.user = jwtDecode(action.payload.access)
             console.log(state.user,'lllllllllllldhdllll');
-            
             localStorage.setItem('authToken',JSON.stringify(action.payload.access))
         },
         removeAuthToken : (state)=>{

@@ -1,7 +1,9 @@
 import React from 'react';
 import { FaCamera } from "react-icons/fa";
+import { useUserStory } from '../api/userside';
 
 function UserStory() {
+    const {data:story} = useUserStory()
     return (
         <div className="w-full bg-white">
             <div className="w-full overflow-x-auto  flex p-2 gap-2 scrollbar-hide">

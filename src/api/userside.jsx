@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+const baseURL = "http://127.0.0.1:8000/"
 
 export const useUserPost = () => {
     const queryClient = useQueryClient();
@@ -49,7 +50,7 @@ const followUser = async (userId) => {
     return response.data;
   };
   
- export const useFollowUser = () => {
+export const useFollowUser = () => {
     return useMutation({
       mutationFn: (userId) => followUser(userId),
       onSuccess: (data) => {
@@ -63,26 +64,47 @@ const followUser = async (userId) => {
     });
   };
 
-const profileEdit = async (userId, formData) => {
-    const token = localStorage.getItem('authToken');
-    const config = {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`,
-        },
-    };
-    const response = await axios.patch(`http://127.0.0.1:8000/update/${userId}/`, formData, config);
-    return response.data;
-};
-
-export const useProfileEdit = () => {
-    return useMutation({
-        mutationFn: ({ userId, formData }) => profileEdit(userId, formData),
-        onSuccess: (data) => {
-            console.log('Profile updated successfully:', data);
-        },
-        onError: (error) => {
-            console.error('Error updating profile:', error);
+  export const useUserProfile = (userId) => {
+    return useQuery({
+        queryKey: ['userProfile'],
+        queryFn: async () => {
+            const response = await axios.get(`http://127.0.0.1:8000/update/${userId}/`)
+            return response.data;
         },
     });
 };
+
+
+export const useProfileEdit = (userId) => {
+    return useMutation({
+      mutationFn: async (formData) => {
+        const response = await axios.patch(`
+          ${baseURL}/update/${userId}/`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );      
+        return response?.data;
+      },
+      onSuccess: () => {
+        toast.success("updated Successfully Uploaded");
+      },
+      onError: () => {
+        toast.error("Somthing went wrong");
+      },
+    });
+  };
+
+
+export const useUserStory=()=>{
+    return useQuery({
+        queryKey: ['userstory'],
+        queryFn: async () => {
+            const response = await axios.get(`http://127.0.0.1:8000/user/story/`)
+            return response.data;
+        },
+    });
+}

@@ -11,13 +11,17 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 const queryClient = new QueryClient();
 
 let authToken = JSON.parse(localStorage.getItem('authToken'));
+console.log(authToken,'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaau');
 axios.interceptors.request.use((request) => {
-  if (authToken) {
-    request.headers.Authorization = `Bearer ${authToken}`;
+  const { auth } = store.getState();
+  if (auth.authToken) {
+    console.log(auth.authToken,'oooooooooooooooooooooooooo');
+    request.headers.Authorization = `Bearer ${auth.authToken}`;
   }
   return request;
+}, (error) => {
+  return Promise.reject(error);
 });
-
 createRoot(document.getElementById('root')).render(
   <GoogleOAuthProvider clientId="803855273476-a4v1im9l3mtvpm7krhrbj88osuh6r1mp.apps.googleusercontent.com">
   <QueryClientProvider client={queryClient}>

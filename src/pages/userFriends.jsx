@@ -1,14 +1,20 @@
 import React from 'react'
 import { IoMdPersonAdd } from "react-icons/io";
-import { useFollowUser } from '../api/userside';
+import { useFollowUser, useFriendSuggest } from '../api/userside';
+
 function UserFriends() {
+    const baseurl = "http://127.0.0.1:8000/";
+
     const friends = [
         { name: "John Bruce", profession: "No Profession", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIIQb6U4OUfRB0ddrwRCeMM3bdrwpohfm_TyG9n-lBiBzwlnOuncyLUtohth1_oSJMdAw&usqp=CAU" },
         { name: "Anna Mariya", profession: "Web Developer", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTUiQprIzqdBNqRY4vkz1ophC-T7Zbp-mea1QifrJYaHWgkvXWv1vjLbym_o45O_faBk5g&usqp=CAU" },
         { name: "Mille Brown", profession: "MERN Stack Developer", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-3G2k6ECBmcv0BnUYIR_S55uBOuRen2sL7h7aGyb2LrHyei0IKdtY_AKhxPyod72cVpQ&usqp=CAU" }
     ];
 
-    const { mutate, isLoading } = useFollowUser();
+    const { mutate,isLoading } = useFollowUser();
+    const {data:users} = useFriendSuggest()
+    console.log(users,'aaaaaaaaaaaaaaaaaaaa');
+    
     const handleFollowClick = (userId) => {
         mutate(userId);
     };
@@ -35,7 +41,7 @@ function UserFriends() {
                                     disabled={isLoading}
                                     className="border border-gray-300 p-1 text-sm rounded-full"
                                 >
-                                    {isLoading ? 'Following...' : 'Follow'}
+                                    {isLoading ? 'Following...' : 'accpet'}
                                 </button>
                                 <button className="border border-gray-300 p-1 text-sm rounded-full">Deny</button>
                             </div>
@@ -52,13 +58,13 @@ function UserFriends() {
 
                 <div className="p-5 border-t">
 
-                    {friends?.map((friend, index) => (
+                    {users?.map((user, index) => (
                         <div key={index} className="flex items-center justify-between">
-                            <div className="flex items-center">
-                                <img src={friend?.img} alt={friend?.name} className="w-12 h-12 rounded-full object-cover" />
+                            <div className="flex items-center">   
+                                <img src={`${baseurl}${user?.picture}`} alt={user?.name} className="w-12 h-12 rounded-full object-cover" />
                                 <div className="ml-4">
-                                    <p className="text-sm">{friend?.name}</p>
-                                    <p className="text-gray-500 text-sm ">{friend?.profession}</p>
+                                    <p className="text-sm">{user?.name}</p>
+                                    <p className="text-gray-500 text-sm ">{user?.username}</p>
                                 </div>
                             </div>
 

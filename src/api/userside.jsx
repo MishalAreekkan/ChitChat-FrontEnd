@@ -17,17 +17,22 @@ export const useUserPost = () => {
 };
 
 export const useFeedPost = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (feed) => {
-            const response = await axios.post('http://127.0.0.1:8000/user/posts/', feed);
-            return response.data;
-        },
-        onError: (error) => {
-            console.error('Error posting data:', error);
-        },
-    });
+  const queryClient = useQueryClient();
+  return useMutation({
+      mutationFn: async (feed) => {
+          const response = await axios.post('http://127.0.0.1:8000/user/posts/', feed, {
+              headers: { 'Content-Type': 'multipart/form-data' },
+          });
+          return response.data;
+      },
+      onError: (error) => {
+          console.error('Error posting data:', error);
+          alert('Failed to post. Please try again.');
+      },
+      onSuccess: () => {
+          queryClient.invalidateQueries('posts');
+      },
+  });
 };
 
 export const useChat = () => {
@@ -90,7 +95,7 @@ export const useProfileEdit = (userId) => {
         return response?.data;
       },
       onSuccess: () => {
-        toast.success("updated Successfully Uploaded");
+        toast.success("Successfully Uploaded");
       },
       onError: () => {
         toast.error("Somthing went wrong");
@@ -99,12 +104,99 @@ export const useProfileEdit = (userId) => {
   };
 
 
-export const useUserStory=()=>{
+export const useStoryGet=(userId)=>{
     return useQuery({
         queryKey: ['userstory'],
         queryFn: async () => {
             const response = await axios.get(`http://127.0.0.1:8000/user/story/`)
+            console.log(response.data,'storyyyyyyyyyyyyyy');
             return response.data;
         },
     });
+}
+
+
+export const useStoryPost = (userId) => {
+  return useMutation({
+      mutationFn: async (formData) => {
+          const response = await axios.post(`${baseURL}/user/story/crd/${userId}/`, formData, {
+              headers: {
+                  "Content-Type": "multipart/form-data",
+              },
+          });
+          return response.data;
+      },
+  },
+  {
+      onSuccess: () => {
+          toast.success("Successfully Uploaded");
+      },
+      onError: () => {
+          toast.error("Something went wrong");
+      },
+  });
+};
+
+
+export const useFriendSuggest=()=>{
+    return useQuery({
+        queryKey:['suggestion'],
+        queryFn:async()=>{
+            const response = await axios.get('http://127.0.0.1:8000/suggestion/')
+            console.log(response.data,'ssssssssssssssssss')
+            return response.data
+        }
+    })
+}
+
+
+export const useCameraPicture = (userId) => {
+    return useMutation({
+      mutationFn: async (formData) => {
+        const response = await axios.patch(
+          `${baseURL}/camera/${userId}/`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );      
+        return response?.data;
+      },
+      onSuccess: () => {
+        toast.success("Successfully Uploaded");
+      },
+      onError: () => {
+        toast.error("Something went wrong");
+      },
+    });
+  };
+
+
+export const useVideoList=()=>{
+  const queryClient = useQueryClient()
+  return useQuery({
+    queryKey:['userVideo'],
+    queryFn:async()=>{
+      const response = await axios(`${baseURL}/user/video/`)
+      return response.data
+    },onSuccess: () => {
+      queryClient.invalidateQueries(['userVideo']);
+  },
+  })
+}
+
+export const useProfile=()=>{
+  const queryClient = useQueryClient()
+  return useQuery({
+    queryKey:['profile'],
+    queryFn:async()=>{
+      const response = await axios(`${baseURL}/follow/`)
+      return response.data
+      
+    },onSuccess: () => {
+      queryClient.invalidateQueries(['profile']);
+  },
+  })
 }

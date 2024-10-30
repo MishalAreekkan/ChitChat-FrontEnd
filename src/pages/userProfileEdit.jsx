@@ -7,7 +7,8 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import TextField from '@mui/material/TextField';
-import { useProfileEdit, useUserProfile, useUserStory } from '../api/userside';
+import { useCameraPicture, useProfile, useProfileEdit, useStoryGet, useUserProfile, } from '../api/userside';
+import UserProfilePost from './userProfilePost';
 
 const style = {
     position: 'absolute',
@@ -33,12 +34,22 @@ function UserProfileEdit() {
     const [open, setOpen] = React.useState(false);
     const [openArchive, setOpenArchive] = React.useState(false);
 
+    const [selectedFile, setSelectedFile] = React.useState(null);
+    const mutation = useCameraPicture(logged_user.user_id)
+    const [openCameraModal, setOpenCameraModal] = React.useState(false);
+    const [isCameraOpen, setIsCameraOpen] = React.useState(false);
     const { mutate: editProfile, isLoading } = useProfileEdit(logged_user.user_id);
     const [username, setUsername] = React.useState('');
     const [email, setEmail] = React.useState('');
     const [picture, setPicture] = React.useState(null);
 
-    const { data } = useUserStory();
+    const videoRef = React.useRef(null);
+    const canvasRef = React.useRef(null);
+
+    const { data } = useStoryGet();
+    const { data:count} = useProfile()
+    console.log(count,'lllllllllllllll');
+    
     const stories = data?.stories || [];
     const archived_stories = data?.archived_stories || [];
     const handleOpen = () => {
@@ -65,6 +76,80 @@ function UserProfileEdit() {
         });
     };
 
+
+    // const handleOpenCameraModal = () => {
+    //     setOpenCameraModal(true);
+    //     handleCameraStart(); // Start the camera
+    // };
+
+    // const handleCloseCameraModal = () => {
+    //     if (videoRef.current) {
+    //         const stream = videoRef.current.srcObject;
+    //         if (stream) {
+    //             stream.getTracks().forEach(track => track.stop());
+    //         }
+    //     }
+    //     setOpenCameraModal(false);
+    //     setPicture(null);
+    // };
+
+    // const handleCameraStart = async () => {
+    //     try {
+    //         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    //         videoRef.current.srcObject = stream;
+    //     } catch (error) {
+    //         console.error("Error accessing the camera: ", error);
+    //     }
+    // };
+
+
+    // const handleCapture = () => {
+    //     const canvas = canvasRef.current;
+    //     const context = canvas.getContext('2d');
+    //     context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+    //     canvas.toBlob(blob => {
+    //         const file = new File([blob], 'profile-picture.png', { type: 'image/png' });
+    //         setPicture(file); // Update here to use setPicture
+    //     });
+    // };
+
+    // const handleCameraUpload = async (e) => {
+    //     e.preventDefault();
+    //     if (!picture) {
+    //         alert("No image captured.");
+    //         return;
+    //     }
+    //     const formData = new FormData();
+    //     formData.append('picture', picture); // Use the captured picture
+    //     mutation.mutate(formData, {
+    //         onSuccess: () => {
+    //             alert("Profile picture updated successfully!");
+    //             handleCloseCameraModal();
+    //         },
+    //         onError: (error) => {
+    //             alert("Error updating profile picture: " + error.message);
+    //         },
+    //     });
+    // };
+    // const handleUpload = (e) => {
+    //     e.preventDefault();
+    //     if (!selectedFile) {
+    //         alert("Please select a file first.");
+    //         return;
+    //     }
+    //     const formData = new FormData();
+    //     formData.append('picture', selectedFile);
+    //     mutation.mutate(formData, {
+    //         onSuccess: () => {
+    //             alert("Profile picture updated successfully!");
+    //             handleCloseCameraModal();
+    //         },
+    //         onError: (error) => {
+    //             alert("Error updating profile picture: " + error.message);
+    //         },
+    //     });
+    // };
+
     return (
         <>
             <div>
@@ -80,11 +165,13 @@ function UserProfileEdit() {
                                 />
                             </div>
                             <div className="absolute top-5 right-0 bg-white rounded-full w-6 h-6 flex items-center justify-center">
-                                <button>
+                                {/* <button onClick={handleOpenCameraModal}> */}
+                                <button >
                                     <FaCamera />
                                 </button>
                             </div>
                         </div>
+
 
                         <div className="mt-4 text-center">
                             <h1 className="font-bold text-lg">{user?.username}</h1>
@@ -191,11 +278,11 @@ function UserProfileEdit() {
                                     <p className="text-gray-500 text-sm">Posts</p>
                                 </div>
                                 <div>
-                                    <h2 className="font-bold">0</h2>
+                                    <h2 className="font-bold">{count?.following_count}</h2>
                                     <p className="text-gray-500 text-sm">Followers</p>
                                 </div>
                                 <div>
-                                    <h2 className="font-bold">0</h2>
+                                    <h2 className="font-bold">{count?.followers_count}</h2>
                                     <p className="text-gray-500 text-sm">Following</p>
                                 </div>
                             </div>
@@ -220,12 +307,23 @@ function UserProfileEdit() {
                     <div>
                     </div>
                     {/* Tabs */}
-                    <div className="mt-8 w-full flex justify-around border-t border-gray-300 pt-4">
-                        <button className="text-gray-500">POSTS</button>
-                        <button className="text-gray-500">SAVED</button>
-                        <button className="text-gray-500">TAGGED</button>
-                    </div>
+                    <UserProfilePost/>
                 </div>
+                {/* <Modal open={openCameraModal} onClose={handleCloseCameraModal}>
+                    <Box sx={{ width: 400, height: 300, p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Typography variant="h6">Capture Profile Picture</Typography>
+                        <video
+                            ref={videoRef}
+                            autoPlay
+                            style={{ width: '320px', height: '240px', border: '1px solid black' }} // Set the size of the video
+                        ></video>
+                        <Button onClick={handleCapture} variant="contained" color="primary" sx={{ mt: 2 }}>
+                            Capture Image
+                        </Button>
+                        <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
+                    </Box>
+                </Modal> */}
+
             </div>
         </>
     );

@@ -10,13 +10,14 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const queryClient = new QueryClient();
 
-let authToken = JSON.parse(localStorage.getItem('authToken'));
-console.log(authToken,'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaau');
+// let authToken = JSON.parse(localStorage.getItem('authToken'));
+// console.log(authToken,'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaau');
 axios.interceptors.request.use((request) => {
-  const { auth } = store.getState();
-  if (auth.authToken) {
-    console.log(auth.authToken,'oooooooooooooooooooooooooo');
-    request.headers.Authorization = `Bearer ${auth.authToken}`;
+  // const { auth } = store.getState();
+  const accessToken = localStorage.getItem('authToken')
+  console.log(typeof accessToken)
+  if (accessToken) {
+    request.headers['Authorization'] = `Bearer ${accessToken}`;
   }
   return request;
 }, (error) => {

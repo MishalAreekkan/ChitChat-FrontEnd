@@ -3,12 +3,15 @@ import { useSelector } from 'react-redux';
 import facebookImg from '../assets/images/facebook.png';
 import twitterImg from '../assets/images/twitter.png';
 import instagramImg from '../assets/images/instagram.png'
-import { useChat } from '../api/userside';
+import { useChat, useProfile } from '../api/userside';
 
 function UserProfile() {
     const baseUrl = "http://127.0.0.1:8000/"
     const user = useSelector(state => state.auth.user);
     const chatMutation = useChat();
+    const {data:profile}=useProfile()
+    console.log(profile,'pppppppppppppppppppppp');
+    
     const [showModal, setShowModal] = React.useState(false);
     const [userInput, setUserInput] = React.useState('');
     const [response, setResponse] = React.useState('');
@@ -42,10 +45,10 @@ function UserProfile() {
                 </div>
 
                 <div className="w-full text-center mt-2">
-                    <h2 className="text-sm font-semibold text-black">{user?.username}</h2>
+                    <h2 className="text-lg font-semibold text-black">{user?.username}</h2>
                     <div className="mt-1">
-                        <p className="text-gray-300 text-sm">Followers</p>
-                        <p className="text-gray-300 text-sm">Following</p>
+                        <p className="text-md">Followers {profile?.following_count}</p>
+                        <p className="text-md">Following {profile?.followers_count}</p>
                     </div>
                 </div>
 

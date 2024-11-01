@@ -17,6 +17,41 @@ export const useUserPost = () => {
     });
 };
 
+
+export const usePostLike = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (post_id) => {
+      const response = await axios.post(`http://127.0.0.1:8000/user/like/${post_id}/`);
+      console.log(response.data, 'like');
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries('userPosts');
+    },
+    onError: (error) => {
+      console.error('Error liking post:', error);
+    },
+  });
+};
+
+export const usePostDiLike = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (post_id) => {
+      const response = await axios.post(`http://127.0.0.1:8000/user/dislike/${post_id}/`);
+      console.log(response.data, 'dislike');
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries('userPosts');
+    },
+    onError: (error) => {
+      console.error('Error liking post:', error);
+    },
+  });
+};
+
 export const useFeedPost = () => {
   const queryClient = useQueryClient();
   return useMutation({

@@ -8,6 +8,7 @@ export const useUserPost = () => {
         queryKey: ['listing'],
         queryFn: async () => {
             const response = await axios.get('http://127.0.0.1:8000/user/posts/');
+            console.log(response.data,'response.data');
             return response.data;
         },
         onSuccess: () => {
@@ -50,24 +51,6 @@ export const useChat = () => {
     });
 };
 
-const followUser = async (userId) => {
-    const response = await axiosInstance.post(`/follow/${userId}/`);
-    return response.data;
-  };
-  
-export const useFollowUser = () => {
-    return useMutation({
-      mutationFn: (userId) => followUser(userId),
-      onSuccess: (data) => {
-        console.log('Follow request sent:', data);
-        alert(data.detail);
-      },
-      onError: (error) => {
-        console.error('Error following user:', error);
-        alert(error.response?.data?.detail || 'An error occurred');
-      },
-    });
-  };
 
   export const useUserProfile = (userId) => {
     return useQuery({
@@ -109,7 +92,7 @@ export const useStoryGet=(userId)=>{
         queryKey: ['userstory'],
         queryFn: async () => {
             const response = await axios.get(`http://127.0.0.1:8000/user/story/`)
-            console.log(response.data,'storyyyyyyyyyyyyyy');
+            // console.log(response.data,'storyyyyyyyyyyyyyy');
             return response.data;
         },
     });
@@ -138,11 +121,71 @@ export const useStoryPost = (userId) => {
 };
 
 
+export const useFollowUser = (user_id) => {
+  console.log(user_id,'uuuuuserrrrrid');
+
+  return useMutation({
+    mutationFn: async (user_id) => {
+      const response = await axios.post(`${baseURL}user/follow/${user_id}/`);
+      console.log(response.data, 'response.data');
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success("Successfully requested");
+    },
+    onError: () => {
+      toast.error("Something went wrong");
+    },
+  });
+};
+
+export const userRequest=()=>{
+  return useQuery({
+      queryKey: ['userRequest'],
+      queryFn: async () => {
+          const response = await axios(`${baseURL}user/accept/`)
+          console.log(response.data,'response.ddatadaa');
+          return response.data;
+      },
+  });
+}
+export const useAccept = (follower_id) => {
+  console.log(follower_id,'uuuuuserrrrrid');
+  return useMutation({
+    mutationFn: async (follower_id) => {
+      const response = await axios.post(`${baseURL}user/accept/${follower_id}/`);
+      console.log(response.data, 'response.data');
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success("Successfully accepted");
+    },
+    onError: () => {
+      toast.error("Something went wrong");
+    },
+  });
+};
+
+// export const useFollowUsers = () => {
+//   return useMutation(
+//     (userId) => axios.post(`http://127.0.0.1:8000/user/follow/${userId}/`),
+//     {
+//       onSuccess: (data) => {
+//         console.log('Follow request sent successfully', data);
+//       },
+//       onError: (error) => {
+//         console.error('Error sending follow request:', error);
+//       },
+//     }
+//   );
+// };
+
+
 export const useFriendSuggest=()=>{
     return useQuery({
         queryKey:['suggestion'],
         queryFn:async()=>{
-            const response = await axios.get('http://127.0.0.1:8000/suggestion/')
+            const response = await axios.get('http://127.0.0.1:8000/user/suggestion/')
             console.log(response.data,'ssssssssssssssssss')
             return response.data
         }
@@ -179,7 +222,7 @@ export const useVideoList=()=>{
   return useQuery({
     queryKey:['userVideo'],
     queryFn:async()=>{
-      const response = await axios(`${baseURL}/user/video/`)
+      const response = await axios(`${baseURL}user/video/`)
       return response.data
     },onSuccess: () => {
       queryClient.invalidateQueries(['userVideo']);
@@ -192,7 +235,7 @@ export const useProfile=()=>{
   return useQuery({
     queryKey:['profile'],
     queryFn:async()=>{
-      const response = await axios(`${baseURL}/follow/`)
+      const response = await axios(`${baseURL}follow/`)
       return response.data
       
     },onSuccess: () => {

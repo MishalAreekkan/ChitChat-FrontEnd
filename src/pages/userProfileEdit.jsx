@@ -7,7 +7,7 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import TextField from '@mui/material/TextField';
-import { useCameraPicture, useProfile, useProfileEdit, useStoryGet, useUserProfile, } from '../api/userside';
+import { useProfile, useProfileEdit, useStoryGet, useUserProfile, } from '../api/userside';
 import UserProfilePost from './userProfilePost';
 
 const style = {
@@ -33,18 +33,10 @@ function UserProfileEdit() {
     const baseUrl = "http://127.0.0.1:8000/";
     const [open, setOpen] = React.useState(false);
     const [openArchive, setOpenArchive] = React.useState(false);
-
-    const [selectedFile, setSelectedFile] = React.useState(null);
-    const mutation = useCameraPicture(logged_user.user_id)
-    const [openCameraModal, setOpenCameraModal] = React.useState(false);
-    const [isCameraOpen, setIsCameraOpen] = React.useState(false);
     const { mutate: editProfile, isLoading } = useProfileEdit(logged_user.user_id);
     const [username, setUsername] = React.useState('');
     const [email, setEmail] = React.useState('');
     const [picture, setPicture] = React.useState(null);
-
-    const videoRef = React.useRef(null);
-    const canvasRef = React.useRef(null);
 
     const { data } = useStoryGet();
     const { data:count} = useProfile()
@@ -75,80 +67,6 @@ function UserProfileEdit() {
             },
         });
     };
-
-
-    // const handleOpenCameraModal = () => {
-    //     setOpenCameraModal(true);
-    //     handleCameraStart(); // Start the camera
-    // };
-
-    // const handleCloseCameraModal = () => {
-    //     if (videoRef.current) {
-    //         const stream = videoRef.current.srcObject;
-    //         if (stream) {
-    //             stream.getTracks().forEach(track => track.stop());
-    //         }
-    //     }
-    //     setOpenCameraModal(false);
-    //     setPicture(null);
-    // };
-
-    // const handleCameraStart = async () => {
-    //     try {
-    //         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    //         videoRef.current.srcObject = stream;
-    //     } catch (error) {
-    //         console.error("Error accessing the camera: ", error);
-    //     }
-    // };
-
-
-    // const handleCapture = () => {
-    //     const canvas = canvasRef.current;
-    //     const context = canvas.getContext('2d');
-    //     context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-    //     canvas.toBlob(blob => {
-    //         const file = new File([blob], 'profile-picture.png', { type: 'image/png' });
-    //         setPicture(file); // Update here to use setPicture
-    //     });
-    // };
-
-    // const handleCameraUpload = async (e) => {
-    //     e.preventDefault();
-    //     if (!picture) {
-    //         alert("No image captured.");
-    //         return;
-    //     }
-    //     const formData = new FormData();
-    //     formData.append('picture', picture); // Use the captured picture
-    //     mutation.mutate(formData, {
-    //         onSuccess: () => {
-    //             alert("Profile picture updated successfully!");
-    //             handleCloseCameraModal();
-    //         },
-    //         onError: (error) => {
-    //             alert("Error updating profile picture: " + error.message);
-    //         },
-    //     });
-    // };
-    // const handleUpload = (e) => {
-    //     e.preventDefault();
-    //     if (!selectedFile) {
-    //         alert("Please select a file first.");
-    //         return;
-    //     }
-    //     const formData = new FormData();
-    //     formData.append('picture', selectedFile);
-    //     mutation.mutate(formData, {
-    //         onSuccess: () => {
-    //             alert("Profile picture updated successfully!");
-    //             handleCloseCameraModal();
-    //         },
-    //         onError: (error) => {
-    //             alert("Error updating profile picture: " + error.message);
-    //         },
-    //     });
-    // };
 
     return (
         <>
@@ -279,11 +197,11 @@ function UserProfileEdit() {
                                 </div>
                                 <div>
                                     <h2 className="font-bold">{count?.following_count}</h2>
-                                    <p className="text-gray-500 text-sm">Followers</p>
+                                    <p className="text-gray-500 text-sm">Following</p>
                                 </div>
                                 <div>
                                     <h2 className="font-bold">{count?.followers_count}</h2>
-                                    <p className="text-gray-500 text-sm">Following</p>
+                                    <p className="text-gray-500 text-sm">Followers</p>
                                 </div>
                             </div>
                         </div>
@@ -306,24 +224,8 @@ function UserProfileEdit() {
                     </div>
                     <div>
                     </div>
-                    {/* Tabs */}
                     <UserProfilePost/>
                 </div>
-                {/* <Modal open={openCameraModal} onClose={handleCloseCameraModal}>
-                    <Box sx={{ width: 400, height: 300, p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <Typography variant="h6">Capture Profile Picture</Typography>
-                        <video
-                            ref={videoRef}
-                            autoPlay
-                            style={{ width: '320px', height: '240px', border: '1px solid black' }} // Set the size of the video
-                        ></video>
-                        <Button onClick={handleCapture} variant="contained" color="primary" sx={{ mt: 2 }}>
-                            Capture Image
-                        </Button>
-                        <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
-                    </Box>
-                </Modal> */}
-
             </div>
         </>
     );

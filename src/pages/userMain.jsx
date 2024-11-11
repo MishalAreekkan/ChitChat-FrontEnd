@@ -4,7 +4,7 @@ import UserFeed from './userFeed'
 import UserMind from './userMind'
 function UserMain() {
   return (
-    <div className='w-full h-full bg-white'>
+    <div className='w-full h-screen bg-white overflow-auto'>
       <UserStory/>
       <UserMind/>
       <UserFeed/>

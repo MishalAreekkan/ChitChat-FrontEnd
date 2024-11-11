@@ -12,6 +12,8 @@ function UserFriends({ user_id }) {
     const { mutate: accept } = useAccept()
 
     const { data: users } = useFriendSuggest()
+    console.log(users,'useFriendSuggest');
+    
 
     const handleFollowClick = (user_id) => {
         followUser(user_id);
@@ -71,13 +73,12 @@ function UserFriends({ user_id }) {
 
                 <div className="p-5 border-t">
 
-                    {users?.map((user, index) => (
+                    {users?.suggestions?.map((user, index) => (
                         <div key={index} className="flex items-center justify-between">
                             <div className="flex items-center">
                                 <img src={`${baseurl}${user?.picture}`} alt={user?.username} className="w-12 h-12 rounded-full object-cover" />
                                 <div className="ml-4">
-                                    <p className="text-sm">{user?.name}</p>
-                                    <p className="text-gray-500 text-sm ">{user?.username}</p>
+                                    <p className="text-gray-500 text-md ">{user?.username}</p>
                                 </div>
                             </div>
 

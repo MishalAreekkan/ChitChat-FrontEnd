@@ -20,9 +20,9 @@ function UserNavbar() {
             <div className="font-bold text-lg">CHIT CHAT</div>
             <nav className="hidden md:flex space-x-6 text-lg font-medium">
                 <a href="/userhome" className="hover:text-gray-400 transition-colors">Home</a>
-                <a href="/uservideo" className="hover:text-gray-400 transition-colors">Video</a>
-                <a href="#" className="hover:text-gray-400 transition-colors">Community</a>
-                <a href="#" className="hover:text-gray-400 transition-colors">Messaging</a>
+                <a href="/uservideo" className="hover:text-gray-400 transition-colors">Reels</a>
+                <a href="3" className="hover:text-gray-400 transition-colors">Community</a>
+                <a href="/userchat" className="hover:text-gray-400 transition-colors">Messaging</a>
                 <a href="#" className="hover:text-gray-400 transition-colors">Jobs</a>
             </nav>
             <div className="flex items-center space-x-4 ">

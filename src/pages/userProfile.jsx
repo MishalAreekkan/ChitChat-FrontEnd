@@ -10,7 +10,7 @@ function UserProfile() {
     const user = useSelector(state => state.auth.user);
     const chatMutation = useChat();
     const {data:profile}=useProfile()
-    console.log(profile,'pppppppppppppppppppppp');
+    // console.log(profile,'pppppppppppppppppppppp');
     
     const [showModal, setShowModal] = React.useState(false);
     const [userInput, setUserInput] = React.useState('');
@@ -47,8 +47,8 @@ function UserProfile() {
                 <div className="w-full text-center mt-2">
                     <h2 className="text-lg font-semibold text-black">{user?.username}</h2>
                     <div className="mt-1">
-                        <p className="text-md">Followers {profile?.following_count}</p>
-                        <p className="text-md">Following {profile?.followers_count}</p>
+                        <p className="text-md">Following {profile?.following_count}</p>
+                        <p className="text-md">Followers {profile?.followers_count}</p>
                     </div>
                 </div>
 

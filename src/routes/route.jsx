@@ -5,6 +5,7 @@ import Loginform from '../components/Auth/loginform'
 import UserHome from '../pages/userHome'
 import UserProfileEdit from '../pages/userProfileEdit'
 import UserVideo from '../pages/userVideo'
+import UserChat from '../components/Chat/userChat'
 function AppRoute() {
   return (
     <div>
@@ -14,6 +15,7 @@ function AppRoute() {
         <Route path='userhome' element={<UserHome/>} />
         <Route path='UserEdit' element={<UserProfileEdit/>} />
         <Route path='uservideo' element={<UserVideo/>} />
+        <Route path='userchat' element={<UserChat />} />
         {/* <Route path='/userhome' element={<UserDemo/>} /> */}
     </Routes>
     </div>

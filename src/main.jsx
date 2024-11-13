@@ -15,7 +15,7 @@ const queryClient = new QueryClient();
 axios.interceptors.request.use((request) => {
   // const { auth } = store.getState();
   const accessToken = localStorage.getItem('authToken')
-  console.log(typeof accessToken)
+  // console.log(typeof accessToken)
   if (accessToken) {
     request.headers['Authorization'] = `Bearer ${accessToken}`;
   }

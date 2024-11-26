@@ -21,7 +21,7 @@ function UserNavbar() {
             <nav className="hidden md:flex space-x-6 text-lg font-medium">
                 <a href="/userhome" className="hover:text-gray-400 transition-colors">Home</a>
                 <a href="/uservideo" className="hover:text-gray-400 transition-colors">Reels</a>
-                <a href="3" className="hover:text-gray-400 transition-colors">Community</a>
+                <a href="/groupchat" className="hover:text-gray-400 transition-colors">Community</a>
                 <a href="/userchat" className="hover:text-gray-400 transition-colors">Messaging</a>
                 <a href="#" className="hover:text-gray-400 transition-colors">Jobs</a>
             </nav>

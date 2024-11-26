@@ -6,6 +6,7 @@ import UserHome from '../pages/userHome'
 import UserProfileEdit from '../pages/userProfileEdit'
 import UserVideo from '../pages/userVideo'
 import UserChat from '../components/Chat/userChat'
+import GroupChat from '../components/Chat/groupChat'
 function AppRoute() {
   return (
     <div>
@@ -16,6 +17,8 @@ function AppRoute() {
         <Route path='UserEdit' element={<UserProfileEdit/>} />
         <Route path='uservideo' element={<UserVideo/>} />
         <Route path='userchat' element={<UserChat />} />
+        <Route path='groupchat' element={<GroupChat />} />
+
         {/* <Route path='/userhome' element={<UserDemo/>} /> */}
     </Routes>
     </div>

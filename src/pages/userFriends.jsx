@@ -95,3 +95,18 @@ function UserFriends({ user_id }) {
 }
 
 export default UserFriends
+
+
+
+                // {/* Sidebar - About Section */}
+                // <aside className="w-1/4 bg-white p-4 border-l">
+                //     <h3 className="text-xl font-bold">About the group</h3>
+                //     <ul className="mt-4 space-y-3 text-gray-600">
+                //         <li>Admin</li>
+                //         <li>Name</li>
+                //         <li>📌 Description</li>
+                //         <li>👥 Members</li>
+                //         <li>📁 Shared Media</li>
+                //         <li>🔔 Notifications</li>
+                //     </ul>
+                // </aside>

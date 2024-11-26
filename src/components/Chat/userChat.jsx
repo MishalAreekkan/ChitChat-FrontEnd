@@ -8,14 +8,16 @@ function UserChat() {
     const user = useSelector(state => state.auth.user);
     const [selectedChat, setSelectedChat] = useState(null);
     const [messages, setMessages] = useState([]);
+    const [username,setUserName]=useState('')
     const [error, setError] = useState(null);
     const messageInputRef = useRef(null);
     const socketRef = useRef(null);
     const baseUrl = "http://127.0.0.1:8000/";
     const { data } = userList();    
     
-    const handleChatClick = (id) => {
+    const handleChatClick = (chat) => {
         // Close existing WebSocket connection if it exists
+        const {id,username}=chat
         if (socketRef.current) {
             socketRef.current.close();
         }
@@ -43,19 +45,22 @@ function UserChat() {
             setError("Connection lost. Attempting to reconnect...");
         };
     
-        socketRef.current = ws; // Store the WebSocket instance in the ref
+        socketRef.current = ws;
         setSelectedChat(id);
+        setUserName(username)
     };
     
-
     const sendMessage = () => {
         if (socketRef.current && messageInputRef.current.value.trim()) {
             const messageData = {
                 message: messageInputRef.current.value,
-                username: user.username
+                sent_by_user: user.user_id,       
+                sent_to_user: selectedChat       
             };
             socketRef.current.send(JSON.stringify(messageData));
-            setMessages((prevMessages) => [...prevMessages, messageData]);
+            console.log(messageData,'meeagedata');
+            
+            // setMessages((prevMessages) => [...prevMessages, messageData]);
             messageInputRef.current.value = "";
         } else {
             setError("Message cannot be empty or connection is lost");
@@ -75,7 +80,8 @@ function UserChat() {
             }
         };
     }, []);
-
+    console.log(username,'thismessage');
+    
     return (
         <>
             <UserNavbar />
@@ -105,12 +111,12 @@ function UserChat() {
                             <ul key={index}>
                                 <li className="flex items-center justify-between p-2 bg-gray-300 rounded-lg mb-2">
                                     <div
-                                        onClick={() => handleChatClick(chat.id)}
-                                        className="flex items-center bg-red-700 w-full p-2 rounded-lg cursor-pointer"
+                                        onClick={() => handleChatClick(chat)}
+                                        className="flex items-center w-full p-2 rounded-lg cursor-pointer"
                                     >
                                         {chat.username} <IoChatbubbleEllipsesOutline />
                                     </div>
-                                    <span className="text-xs text-gray-500">{chat.time}</span>
+                                    {/* <span className="text-xs text-gray-500">{chat.time}</span> */}
                                 </li>
                             </ul>
                         ))}
@@ -121,13 +127,13 @@ function UserChat() {
                 <div className="flex-1 p-4">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg font-semibold">
-                            {selectedChat ? selectedChat : 'Select a user to chat'}
+                            {selectedChat ? username : 'Select a user to chat'} 
                         </h2>
                     </div>
                     <div className="flex-1 overflow-y-auto bg-white p-2 rounded-lg border">
                         {messages.map((msg, index) => (
-                            <div key={index} className={`p-2 ${msg.username === user.username ? 'text-right' : ''}`}>
-                                <p><strong>{msg.username}:</strong> {msg.message}</p>
+                            <div key={index} className={`p-2 ${msg.sent_by_user === user.user_id ? 'text-right' : ''}`}>
+                                <p><strong>{msg.sent_by_user === user.user_id ? user.username : username}:</strong> {msg.message}</p>
                             </div>
                         ))}
                     </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useCommunity, useCreateCommunity, useMessageShow } from '../../api/userChat';
 import UserNavbar from '../../pages/userNavbar';
@@ -19,17 +19,15 @@ function GroupChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const notificationSocket = useRef(null);
 
-  console.log(selectedCommunity, "kkkkkkkkkk");
-
-
-  // Updated useMessageShow hook call
+  // Fetching messages for selected community
   const { data: communityMessage, isLoading: isMessagesLoading, error: messageError, refetch } = useMessageShow({
-    communityName: selectedCommunity?.name
+    communityName: selectedCommunity?.name,
   });
-  console.log(communityMessage, "communityMessage");
-
-  // WebSocket Connection
+  console.log(messages,'messages');
+  
+  // WebSocket Connection for Chat
   useEffect(() => {
     if (!selectedCommunity) return;
 
@@ -38,20 +36,26 @@ function GroupChat() {
     ws.onopen = () => console.log('WebSocket connected');
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      setMessages((prevMessages) => [...prevMessages, data.message]);
+      console.log('Received WebSocket message:', data);
+      setMessages((prevMessages) => [
+        ...(Array.isArray(prevMessages) ? prevMessages : []),
+        data.message,
+      ]);
     };
+
     ws.onerror = (error) => {
       console.error('WebSocket Error:', error);
       alert('WebSocket connection error!');
     };
+
     ws.onclose = () => console.log('WebSocket closed');
 
     setSocket(ws);
 
-    // Cleanup WebSocket connection on component unmount or community change
     return () => ws.close();
   }, [selectedCommunity]);
 
+  // Send message to the community
   const sendMessage = () => {
     if (socket && inputMessage.trim()) {
       const messageData = {
@@ -63,10 +67,11 @@ function GroupChat() {
       };
       socket.send(JSON.stringify(messageData));
       setInputMessage('');
-      refetch();
+      refetch(); // Refetch messages after sending a new one
     }
   };
 
+  // Create a new community
   const handleCreateCommunity = (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -88,16 +93,54 @@ function GroupChat() {
     );
   };
 
+  // Add users to the community
   const handleAddUser = (id) => {
     if (!users.includes(id)) setUsers((prevUsers) => [...prevUsers, id]);
   };
 
+  // Update messages when new data is fetched
   useEffect(() => {
     if (communityMessage) {
+      console.log('Fetched messages:', communityMessage);
       setMessages(communityMessage);
     }
   }, [communityMessage]);
 
+  // Notification WebSocket for new messages
+  useEffect(() => {
+    if (user && user.username) {
+      notificationSocket.current = new WebSocket(`ws://localhost:8001/ws/notifications/${user.username}/`);
+
+      notificationSocket.current.onopen = () => {
+        console.log('Notification WebSocket connected');
+      };
+
+      notificationSocket.current.onmessage = (message) => {
+        const data = JSON.parse(message.data);
+        console.log('Message received:', data);
+        if (data.type === 'new_message') {
+          setMessages((prevMessages) => {
+            if (Array.isArray(prevMessages)) {
+              return [...prevMessages, data.message];
+            }
+            return [data.message]; // Ensure it's an array
+          });
+        }
+      };
+
+      notificationSocket.current.onclose = () => {
+        console.log('WebSocket closed');
+      };
+
+      return () => {
+        if (notificationSocket.current) {
+          notificationSocket.current.close();
+        }
+      };
+    }
+  }, [user]);
+  console.log(communityMessage,'commmunity mesage');
+  
   return (
     <div>
       <UserNavbar />
@@ -160,44 +203,35 @@ function GroupChat() {
                   Leave Community
                 </button>
               </header>
-              <div className="overflow-y-auto max-h-96 border rounded-lg p-4">
+              <div className="overflow-y-auto max-h-96 border rounded-lg p-4 bg-gray-50 shadow-lg">
                 {isMessagesLoading ? (
-                  <p>Loading messages...</p>
+                  <p className="text-center text-lg text-gray-500">Loading messages...</p>
                 ) : messageError ? (
-                  <p className="text-red-500">Error loading messages</p>
-                ) : messages.length === 0 ? (
-                  <p>No messages yet</p>
+                  <p className="text-center text-lg text-red-500">Error loading messages</p>
+                ) : !Array.isArray(communityMessage.results) || communityMessage.results.length === 0 ? (
+                  <p className="text-center text-lg text-gray-400">No messages yet</p>
                 ) : (
-                  communityMessage
-                    ?.filter(
-                      (msg) => msg.nestedcommunity.name === selectedCommunity.name
-                    )
-                    .map((msg, index) => (
-                      <div
-                        key={index}
-                        className={`mb-4 ${msg.sender_id === user.id ? "text-right" : ""
-                          }`}
-                      >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <strong>{msg.sender_name}</strong>
-                            <span className="text-xs text-gray-500">
-                              {msg.timestamp}
-                            </span>
-                          </div>
-                          {msg.picture && (
-                            <img
-                              src={msg.picture}
-                              alt="user"
-                              className="w-6 h-6 rounded-full"
-                            />
-                          )}
+                  communityMessage.results.map((msg, index) => (
+                    <div key={index} className="mb-4 p-3 rounded-lg hover:bg-gray-100 transition duration-300 ease-in-out">
+                      <div className="flex items-start space-x-4">
+                        {/* Sender's profile picture */}
+                        <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm">
+                          {msg.sender_name.charAt(0).toUpperCase()}
                         </div>
-                        <p>{msg.message}</p>
+
+                        <div className="flex-1">
+                          <div className="flex justify-between items-center">
+                            <p className="text-lg font-semibold text-gray-800">{msg.sender_name}</p>
+                            <span className="text-sm text-gray-400">{new Date(msg.timestamp).toLocaleString()}</span>
+                          </div>
+                          <p className="mt-2 text-gray-700">{msg.message}</p>
+                        </div>
                       </div>
-                    ))
+                    </div>
+                  ))
                 )}
               </div>
+
               <div className="mt-4 flex items-center">
                 <input
                   type="text"
@@ -224,46 +258,46 @@ function GroupChat() {
       {isModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-gray-700 bg-opacity-50">
           <div className="bg-white p-6 rounded-md w-1/3">
-            <h2 className="text-lg font-semibold mb-4">Create a New Community</h2>
+            <h2 className="text-xl font-semibold mb-4">Create Community</h2>
             <form onSubmit={handleCreateCommunity}>
               <input
                 type="text"
+                className="w-full p-2 border mb-4"
+                placeholder="Community name"
                 value={communityName}
                 onChange={(e) => setCommunityName(e.target.value)}
-                className="w-full p-2 mb-2 border rounded-md"
-                placeholder="Community Name"
-                required
               />
               <div className="mb-4">
-                <h4 className="font-semibold">Add Members</h4>
+                <p>Add users:</p>
                 {userListData?.map((userItem) => (
                   <div key={userItem.id} className="flex items-center">
                     <input
                       type="checkbox"
-                      onChange={() => handleAddUser(userItem.id)}
                       checked={users.includes(userItem.id)}
+                      onChange={() => handleAddUser(userItem.id)}
                     />
                     <span className="ml-2">{userItem.username}</span>
                   </div>
                 ))}
               </div>
-              <div className="flex justify-end">
+              <div className="flex justify-between">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="mr-2 bg-gray-300 text-gray-700 p-2 rounded-md"
+                  className="bg-gray-500 text-white p-2 rounded-md"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
+                  className={`p-2 rounded-md ${isLoading ? 'bg-gray-300' : 'bg-green-500'} text-white`}
                   disabled={isLoading}
-                  className={`p-2 rounded-md ${isLoading ? 'bg-gray-400' : 'bg-blue-500 text-white'}`}
                 >
                   {isLoading ? 'Creating...' : 'Create'}
                 </button>
               </div>
             </form>
+            {error && <p className="text-red-500 mt-2">{error}</p>}
           </div>
         </div>
       )}

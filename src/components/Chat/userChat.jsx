@@ -1,74 +1,118 @@
 import React, { useState, useEffect, useRef } from 'react';
-import UserNavbar from '../../pages/userNavbar';
 import { useSelector } from 'react-redux';
-import { userList } from '../../api/userside';
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
+import UserNavbar from '../../pages/userNavbar';
+import { userList } from '../../api/userside';
+import axios from 'axios';
 
 function UserChat() {
-    const user = useSelector(state => state.auth.user);
+    const user = useSelector((state) => state.auth.user);
     const [selectedChat, setSelectedChat] = useState(null);
     const [messages, setMessages] = useState([]);
-    const [username,setUserName]=useState('')
+    const [username, setUsername] = useState('');
     const [error, setError] = useState(null);
     const messageInputRef = useRef(null);
     const socketRef = useRef(null);
     const baseUrl = "http://127.0.0.1:8000/";
-    const { data } = userList();    
+    const { data: userData } = userList();
+    const [page, setPage] = useState(1);
+    const [hasMoreMessages, setHasMoreMessages] = useState(true);
+
+    const fetchPreviousMessages = async (otherUserId, page = 1) => {
+        if (!hasMoreMessages) return;
     
+        try {
+            const response = await axios.get(`${baseUrl}chat/private/${user.user_id}/${otherUserId}/`);            
+            setMessages(prevMessages => 
+                page === 1 
+                ? response.data.results 
+                : [...response.data.results, ...prevMessages]
+            );
+            
+            setHasMoreMessages(response.data.next !== null);
+        } catch (error) {
+            console.error('Failed to fetch previous messages', error);
+            setError('Could not load previous messages');
+        }
+    };
+
+    // Handle chat selection and WebSocket connection
     const handleChatClick = (chat) => {
-        // Close existing WebSocket connection if it exists
-        const {id,username}=chat
+        const { id, username } = chat;
+
         if (socketRef.current) {
             socketRef.current.close();
         }
-    
-        // Establish a new WebSocket connection with dynamic usernames
+
+        fetchPreviousMessages(id);
+
         const ws = new WebSocket(`ws://localhost:8001/ws/chat/${user.user_id}_${id}/`);
-    
+
         ws.onopen = () => {
-            console.log("WebSocket connection established");
-            setError(null); // Reset error message if connection is successful
+            console.log('WebSocket connection established');
+            setError(null);
         };
-    
+
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            setMessages((prevMessages) => [...prevMessages, data]);
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                {
+                    sender: data.sent_by_user,
+                    message: data.message,
+                    timestamp: new Date().toISOString(),
+                },
+            ]);
         };
-    
-        ws.onerror = (error) => {
-            console.error("WebSocket error", error);
-            setError("Failed to connect to chat. Please try again later.");
+
+
+        ws.onerror = (err) => {
+            console.error('WebSocket error', err);
+            setError('Failed to connect to chat. Please try again later.');
         };
-    
-        ws.onclose = (event) => {
-            console.log("WebSocket connection closed", event);
-            setError("Connection lost. Attempting to reconnect...");
+
+        ws.onclose = () => {
+            console.log('WebSocket connection closed');
         };
-    
+
         socketRef.current = ws;
         setSelectedChat(id);
-        setUserName(username)
+        setUsername(username);
     };
-    
+
     const sendMessage = () => {
-        if (socketRef.current && messageInputRef.current.value.trim()) {
+        const messageText = messageInputRef.current.value.trim();
+
+        if (!messageText) {
+            setError('Message cannot be empty');
+            return;
+        }
+
+        if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
             const messageData = {
-                message: messageInputRef.current.value,
-                sent_by_user: user.user_id,       
-                sent_to_user: selectedChat       
+                message: messageText,
+                sent_by_user: user.user_id,
+                recipient: selectedChat,
             };
+
             socketRef.current.send(JSON.stringify(messageData));
-            console.log(messageData,'meeagedata');
-            
-            // setMessages((prevMessages) => [...prevMessages, messageData]);
-            messageInputRef.current.value = "";
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                { sender: user.user_id, message: messageText, timestamp: new Date().toISOString() },
+            ]);
+            console.log(messages, 'messagesmessages');
+
+
+            messageInputRef.current.value = '';
+            setError(null);
         } else {
-            setError("Message cannot be empty or connection is lost");
+            setError('WebSocket connection is not open. Reconnecting...');
+            handleChatClick({ id: selectedChat, username });
         }
     };
 
     const handleKeyPress = (event) => {
-        if (event.key === "Enter") {
+        if (event.key === 'Enter') {
             sendMessage();
         }
     };
@@ -80,8 +124,18 @@ function UserChat() {
             }
         };
     }, []);
-    console.log(username,'thismessage');
-    
+    const messagesEndRef = useRef(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
+
+
+
     return (
         <>
             <UserNavbar />
@@ -97,28 +151,16 @@ function UserChat() {
                         <h2 className="text-xl font-semibold mt-2">{user.username}</h2>
                     </div>
                     <div className="mt-8">
-                        <h3 className="text-sm font-semibold mb-2">Teams</h3>
-                        <div className="flex space-x-2">
-                            {/* Replace icons with team logos */}
-                            {[...Array(5)].map((_, i) => (
-                                <span key={i} className="w-8 h-8 bg-gray-400 rounded-full"></span>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="mt-8">
                         <h3 className="text-sm font-semibold mb-2">Chats</h3>
-                        {data?.following?.map((chat, index) => (
-                            <ul key={index}>
-                                <li className="flex items-center justify-between p-2 bg-gray-300 rounded-lg mb-2">
-                                    <div
-                                        onClick={() => handleChatClick(chat)}
-                                        className="flex items-center w-full p-2 rounded-lg cursor-pointer"
-                                    >
-                                        {chat.username} <IoChatbubbleEllipsesOutline />
-                                    </div>
-                                    {/* <span className="text-xs text-gray-500">{chat.time}</span> */}
-                                </li>
-                            </ul>
+                        {userData?.following?.map((chat, index) => (
+                            <div
+                                key={index}
+                                className="flex items-center justify-between p-2 bg-gray-300 rounded-lg mb-2 cursor-pointer"
+                                onClick={() => handleChatClick(chat)}
+                            >
+                                <span>{chat.username}</span>
+                                <IoChatbubbleEllipsesOutline />
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -127,15 +169,30 @@ function UserChat() {
                 <div className="flex-1 p-4">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg font-semibold">
-                            {selectedChat ? username : 'Select a user to chat'} 
+                            {selectedChat ? username : 'Select a user to chat'}
                         </h2>
                     </div>
                     <div className="flex-1 overflow-y-auto bg-white p-2 rounded-lg border">
                         {messages.map((msg, index) => (
-                            <div key={index} className={`p-2 ${msg.sent_by_user === user.user_id ? 'text-right' : ''}`}>
-                                <p><strong>{msg.sent_by_user === user.user_id ? user.username : username}:</strong> {msg.message}</p>
+                            <div
+                                key={index}
+                                className={`flex mb-2 ${msg.sender === user.user_id ? 'justify-end' : 'justify-start'}`}
+                            >
+                                <div
+                                    className={`max-w-[70%] p-2 rounded-lg ${msg.sender === user.user_id ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'
+                                        }`}
+                                >
+                                    <p>{msg.message}</p>
+                                    <span className="text-xs opacity-50 block text-right">
+                                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                </div>
                             </div>
                         ))}
+                        <div className="flex-1 overflow-y-auto bg-white p-2 rounded-lg border">
+                            {/* existing message rendering */}
+                            <div ref={messagesEndRef} />
+                        </div>
                     </div>
                     {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
                     <div className="flex items-center mt-4">
@@ -149,33 +206,6 @@ function UserChat() {
                         <button onClick={sendMessage} className="p-3 bg-orange-500 text-white rounded-lg ml-2">
                             Send
                         </button>
-                    </div>
-                </div>
-
-                {/* User Info */}
-                <div className="w-1/5 bg-gray-200 p-4">
-                    <div className="text-center">
-                        <img
-                            src="kristin.jpg"
-                            alt="Kristin"
-                            className="w-20 h-20 rounded-full mx-auto"
-                        />
-                        <h2 className="text-xl font-semibold mt-2">Kristin Watson</h2>
-                        <p className="text-gray-500">@I_am_Kris</p>
-                    </div>
-                    <div className="mt-4">
-                        <p className="text-sm"><strong>Phone:</strong> +7 (800) 555-35-35</p>
-                        <p className="text-sm"><strong>Date of birth:</strong> 17 March 1990</p>
-                        <p className="text-sm"><strong>Gender:</strong> Male</p>
-                    </div>
-                    <div className="mt-4">
-                        <h3 className="text-sm font-semibold mb-2">Shared files</h3>
-                        <ul>
-                            <li className="text-xs text-gray-500 mb-2">forward_statement.txt - 1.9 MB</li>
-                            <li className="text-xs text-gray-500 mb-2">picture1.jpg - 1.9 MB</li>
-                            <li className="text-xs text-gray-500 mb-2">legal-tune.pdf - 1.9 MB</li>
-                            <li className="text-xs text-gray-500">document_1.pdf - 1.9 MB</li>
-                        </ul>
                     </div>
                 </div>
             </div>

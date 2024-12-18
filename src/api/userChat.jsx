@@ -63,3 +63,8 @@ async function fetchMessages(communityName) {
     throw new Error(error.message || 'Failed to fetch messages');
   }
 }
+
+export const fetchNotifications = async () => {
+  const response = await axios.get("/api/notifications/");
+  return response.data;
+};

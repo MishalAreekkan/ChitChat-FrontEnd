@@ -371,3 +371,19 @@ export const useProfile = () => {
   })
 }
 
+
+export const useFriendsProfile = () => {
+  const queryClient = useQueryClient()
+  return useQuery({
+    queryKey: ['FriendsProfile'],
+    queryFn: async () => {
+      const response = await axios(`${baseURL}user/accept/`)
+      console.log(response.data, 'ccccccccccccccccccttttttttttttt');
+      return response.data
+    }, onSuccess: () => {
+      queryClient.invalidateQueries(['FriendsProfile']);
+    },
+  })
+}
+
+

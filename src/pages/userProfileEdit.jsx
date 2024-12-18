@@ -7,7 +7,7 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import TextField from '@mui/material/TextField';
-import { useProfile, useProfileEdit, useStoryGet, useUserProfile, } from '../api/userside';
+import { useProfile, useProfileEdit, useStoryGet, useUserProfile, useFriendsProfile } from '../api/userside';  // Assuming useFollowers and useFollowing hooks exist
 import UserProfilePost from './userProfilePost';
 
 const style = {
@@ -37,13 +37,16 @@ function UserProfileEdit() {
     const [username, setUsername] = React.useState('');
     const [email, setEmail] = React.useState('');
     const [picture, setPicture] = React.useState(null);
+    const { data: followingUser } = useFriendsProfile()
+    console.log(followingUser);
+    console.log(followingUser?.following_users_data);
 
     const { data } = useStoryGet();
-    const { data:count} = useProfile()
-    console.log(count,'lllllllllllllll');
-    
+    const { data: count } = useProfile();
+
     const stories = data?.stories || [];
     const archived_stories = data?.archived_stories || [];
+
     const handleOpen = () => {
         setOpen(true);
         setUsername(user.username);
@@ -52,6 +55,15 @@ function UserProfileEdit() {
     const handleClose = () => setOpen(false);
     const handleOpenArchive = () => setOpenArchive(true);
     const handleCloseArchive = () => setOpenArchive(false);
+
+
+    const [modalContent, setModalContent] = React.useState(null);
+    const handleFollowingClick = () => {
+        setModalContent('following');
+    };
+    const handleFollowersClick = () => {
+        setModalContent('followers');
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -82,14 +94,7 @@ function UserProfileEdit() {
                                     alt="Profile"
                                 />
                             </div>
-                            <div className="absolute top-5 right-0 bg-white rounded-full w-6 h-6 flex items-center justify-center">
-                                {/* <button onClick={handleOpenCameraModal}> */}
-                                <button >
-                                    <FaCamera />
-                                </button>
-                            </div>
                         </div>
-
 
                         <div className="mt-4 text-center">
                             <h1 className="font-bold text-lg">{user?.username}</h1>
@@ -155,7 +160,7 @@ function UserProfileEdit() {
                                     </Box>
                                 </Modal>
                                 <Button onClick={handleOpenArchive} className="px-4 py-2 text-sm text-gray-700 bg-gray-200 rounded">View archive</Button>
-                                {/* Archive Modal */}
+
                                 <Modal
                                     open={openArchive}
                                     onClose={handleCloseArchive}
@@ -196,12 +201,16 @@ function UserProfileEdit() {
                                     <p className="text-gray-500 text-sm">Posts</p>
                                 </div>
                                 <div>
-                                    <h2 className="font-bold">{count?.following_count}</h2>
-                                    <p className="text-gray-500 text-sm">Following</p>
+                                    <Button onClick={handleFollowingClick}>
+                                        <h2 className="font-bold">{count?.following_count}</h2>
+                                        <p className="text-gray-500 text-sm">Following</p>
+                                    </Button>
                                 </div>
                                 <div>
-                                    <h2 className="font-bold">{count?.followers_count}</h2>
-                                    <p className="text-gray-500 text-sm">Followers</p>
+                                    <Button onClick={handleFollowersClick}>
+                                        <h2 className="font-bold">{count?.followers_count}</h2>
+                                        <p className="text-gray-500 text-sm">Followers</p>
+                                    </Button>
                                 </div>
                             </div>
                         </div>
@@ -224,7 +233,74 @@ function UserProfileEdit() {
                     </div>
                     <div>
                     </div>
-                    <UserProfilePost/>
+                    <UserProfilePost />
+
+                    {/* Modal for Followers/Following */}
+                    <Modal
+                        open={modalContent !== null}
+                        onClose={() => setModalContent(null)}
+                        aria-labelledby="modal-title"
+                        aria-describedby="modal-description"
+                    >
+                        <Box sx={archiveStyle}>
+                            <Typography id="modal-title" variant="h6" component="h2">
+                                {modalContent === 'following' ? 'Following' : 'Followers'}
+                            </Typography>
+                            <Typography id="modal-description" sx={{ mt: 2 }}>
+                                <div className="mt-4">
+                                    {modalContent === 'following' && followingUser?.following_users_data ? (
+                                        followingUser.following_users_data.map(user => (
+                                            <div key={user.id} className="p-4 border-b border-gray-300 flex items-center justify-between">
+                                                <div className="flex items-center gap-4">
+                                                    <img
+                                                        src={`${baseUrl}${user.picture}`}
+                                                        alt={user.username}
+                                                        className="w-12 h-12 rounded-full"
+                                                    />
+                                                    <h3 className="text-gray-700">{user.username}</h3>
+                                                </div>
+                                                <Button
+                                                    onClick={() => handleRemoveUser(user.id)}
+                                                    variant="outlined"
+                                                    color="error"
+                                                    size="small"
+                                                >
+                                                    Remove
+                                                </Button>
+                                            </div>
+                                        ))
+                                    ) : modalContent === 'followers' && followersData ? (
+                                        followersData.map(user => (
+                                            <div key={user.id} className="p-4 border-b border-gray-300 flex items-center justify-between">
+                                                <div className="flex items-center gap-4">
+                                                    <img
+                                                        src={`${baseUrl}${user.picture}`}
+                                                        alt={user.username}
+                                                        className="w-12 h-12 rounded-full"
+                                                    />
+                                                    <h3 className="text-gray-700">{user.username}</h3>
+                                                </div>
+                                                <Button
+                                                    onClick={() => handleRemoveUser(user.id)}
+                                                    variant="outlined"
+                                                    color="error"
+                                                    size="small"
+                                                >
+                                                    Remove
+                                                </Button>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-gray-500">No users found.</p>
+                                    )}
+                                </div>
+                            </Typography>
+                            <Button onClick={() => setModalContent(null)} variant="outlined" color="secondary" sx={{ mt: 2 }}>
+                                Close
+                            </Button>
+                        </Box>
+                    </Modal>
+
                 </div>
             </div>
         </>
